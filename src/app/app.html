@@ -1,0 +1,24 @@
+<div class="backoffice-shell">
+  <aside class="sidebar" aria-label="Navigation principale">
+    <a class="brand" routerLink="/dashboard" aria-label="AI Assistant Management">
+      <span class="brand-mark">A</span>
+      <span>
+        <strong>AI Assistant</strong>
+        <small>Management</small>
+      </span>
+    </a>
+
+    <nav class="nav-list">
+      <a routerLink="/dashboard" routerLinkActive="active">Vue opérationnelle</a>
+      <a routerLink="/clients" routerLinkActive="active">Clients</a>
+      <a routerLink="/diagnostics" routerLinkActive="active">Diagnostics</a>
+      <a routerLink="/indexations" routerLinkActive="active">Indexations</a>
+      <a routerLink="/access" routerLinkActive="active">Accès</a>
+      <a routerLink="/system" routerLinkActive="active">État système</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <router-outlet />
+  </main>
+</div>
