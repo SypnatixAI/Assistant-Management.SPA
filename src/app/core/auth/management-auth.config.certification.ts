@@ -17,8 +17,8 @@ export interface ManagementAuthConfig {
 export const DEFAULT_MANAGEMENT_AUTH_CONFIG: ManagementAuthConfig = {
   authenticationMode: ManagementAuthenticationMode.Disabled,
   authenticationUrl: '/local-auth/token',
-  authority: 'https://login.microsoftonline.com/c8fc3c23-8569-4caa-9b52-7e03dbd71a6e',
-  clientId: 'cc8b79e3-f7f5-40ab-b894-a815f1d2bd8f',
+  authority: 'https://login.microsoftonline.com/common',
+  clientId: '97fda345-b54e-4243-b05a-31623871df18',
   apiScope: 'api://f70fb50b-52d5-4346-b769-1121cb3ab3e2/access_as_user',
 };
 

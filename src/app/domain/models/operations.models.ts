@@ -9,6 +9,61 @@ export interface ClientSummary {
   readonly lastActivityAt: string;
 }
 
+export interface BackofficeOrganizationListResponse {
+  readonly items: readonly BackofficeOrganizationListItem[];
+  readonly page: number;
+  readonly pageSize: number;
+  readonly totalCount: number;
+}
+
+export interface BackofficeOrganizationListItem {
+  readonly id: string;
+  readonly name: string;
+  readonly tenantId?: string | null;
+  readonly status: 'Active' | 'Disabled';
+  readonly userCount: number;
+  readonly connectorCount: number;
+  readonly indexedDocumentCount: number;
+  readonly lastSyncAt?: string | null;
+}
+
+export interface BackofficeOrganizationDetails {
+  readonly organization: BackofficeOrganization;
+  readonly users: BackofficeOrganizationUsers;
+  readonly microsoft: BackofficeOrganizationMicrosoft;
+  readonly sources: BackofficeOrganizationSources;
+  readonly indexing: BackofficeOrganizationIndexing;
+}
+
+export interface BackofficeOrganization {
+  readonly id: string;
+  readonly name: string;
+  readonly tenantId?: string | null;
+  readonly status: 'Active' | 'Disabled';
+  readonly createdAt: string;
+}
+
+export interface BackofficeOrganizationUsers {
+  readonly total: number;
+  readonly active: number;
+}
+
+export interface BackofficeOrganizationMicrosoft {
+  readonly connected: boolean;
+  readonly adminConsentGranted: boolean;
+}
+
+export interface BackofficeOrganizationSources {
+  readonly sharePointSiteCount: number;
+  readonly oneDriveCount: number;
+}
+
+export interface BackofficeOrganizationIndexing {
+  readonly documentCount: number;
+  readonly lastSyncAt?: string | null;
+  readonly status: 'Healthy' | 'Error' | 'NotConfigured';
+}
+
 export interface ClientDiagnostic {
   readonly clientId: string;
   readonly identityStatus: OperationSeverity;

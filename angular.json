@@ -76,18 +76,35 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "certification": {
+              "fileReplacements": [
+                {
+                  "replace": "src/app/core/auth/management-auth.config.ts",
+                  "with": "src/app/core/auth/management-auth.config.certification.ts"
+                }
+              ],
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
             }
           },
           "defaultConfiguration": "production"
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "proxyConfig": "proxy.conf.json"
+          },
           "configurations": {
             "production": {
               "buildTarget": "AI-Assistant-Management:build:production"
             },
             "development": {
               "buildTarget": "AI-Assistant-Management:build:development"
+            },
+            "certification": {
+              "buildTarget": "AI-Assistant-Management:build:certification"
             }
           },
           "defaultConfiguration": "development"
