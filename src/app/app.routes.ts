@@ -3,7 +3,7 @@ import { managementAuthGuard } from './core/auth/management-auth.guard';
 
 export const routes: Routes = [
   {
-    path: 'dashboard',
+    path: 'backoffice/dashboard',
     canActivate: [managementAuthGuard],
     loadComponent: () =>
       import('./features/dashboard/operations-dashboard.page').then(
@@ -11,19 +11,29 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'clients',
+    path: 'backoffice/organizations',
     canActivate: [managementAuthGuard],
     loadComponent: () =>
-      import('./features/clients/client-management.page').then((page) => page.ClientManagementPage),
+      import('./features/organizations/organization-list.page').then(
+        (page) => page.OrganizationListPage,
+      ),
   },
   {
-    path: 'diagnostics',
+    path: 'backoffice/organizations/:organizationId',
+    canActivate: [managementAuthGuard],
+    loadComponent: () =>
+      import('./features/organizations/organization-details.page').then(
+        (page) => page.OrganizationDetailsPage,
+      ),
+  },
+  {
+    path: 'backoffice/diagnostics',
     canActivate: [managementAuthGuard],
     loadComponent: () =>
       import('./features/diagnostics/diagnostics.page').then((page) => page.DiagnosticsPage),
   },
   {
-    path: 'indexations',
+    path: 'backoffice/indexations',
     canActivate: [managementAuthGuard],
     loadComponent: () =>
       import('./features/indexations/indexation-management.page').then(
@@ -31,24 +41,53 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'access',
+    path: 'backoffice/access',
     canActivate: [managementAuthGuard],
     loadComponent: () =>
       import('./features/access/access-recovery.page').then((page) => page.AccessRecoveryPage),
   },
   {
-    path: 'system',
+    path: 'backoffice/system',
     canActivate: [managementAuthGuard],
     loadComponent: () =>
       import('./features/system/system-state.page').then((page) => page.SystemStatePage),
   },
   {
+    path: 'dashboard',
+    redirectTo: 'backoffice/dashboard',
+  },
+  {
+    path: 'clients',
+    redirectTo: 'backoffice/organizations',
+  },
+  {
+    path: 'diagnostics',
+    redirectTo: 'backoffice/diagnostics',
+  },
+  {
+    path: 'indexations',
+    redirectTo: 'backoffice/indexations',
+  },
+  {
+    path: 'access',
+    redirectTo: 'backoffice/access',
+  },
+  {
+    path: 'system',
+    redirectTo: 'backoffice/system',
+  },
+  {
+    path: 'backoffice',
+    pathMatch: 'full',
+    redirectTo: 'backoffice/dashboard',
+  },
+  {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'dashboard',
+    redirectTo: 'backoffice/dashboard',
   },
   {
     path: '**',
-    redirectTo: 'dashboard',
+    redirectTo: 'backoffice/dashboard',
   },
 ];

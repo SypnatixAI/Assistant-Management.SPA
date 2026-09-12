@@ -35,9 +35,9 @@ export function createMsalInterceptorConfig(
   authConfig: ManagementAuthConfig,
   apiConfig: OperationsApiConfig,
 ): MsalInterceptorConfiguration {
-  const apiBaseUrl = new URL(apiConfig.baseUrl, window.location.origin).toString();
+  const apiBaseUrl = new URL(apiConfig.apiBaseUrl, window.location.origin).toString();
   const protectedResourceMap = new Map<string, string[]>([
-    [`${apiBaseUrl.replace(/\/$/, '')}/*`, [authConfig.apiScope]],
+    [`${apiBaseUrl.replace(/\/$/, '')}/api/*`, [authConfig.apiScope]],
   ]);
 
   return {
