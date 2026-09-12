@@ -1,130 +1,107 @@
-# Instructions pour Codex — Backend
+# Instructions pour Codex — Frontend Angular
 
 ## Règles de modification
 
-* Ne modifie jamais les fichiers directement sans me résumer un plan court.
-* Le diff complet n'est pas requis avant modification, sauf si je le demande explicitement.
-* Propose d’abord un plan court.
-* Attends mon approbation avant d’appliquer les changements.
-* Pour une modification minime, tu peux appliquer le changement sans demander une nouvelle approbation.
-* Garde les changements petits et ciblés.
-* Ne touche pas aux fichiers non liés à la demande.
-* Explique les impacts avant de modifier plusieurs fichiers.
+- Avant de modifier des fichiers, résume clairement les changements prévus en
+  langage naturel.
+- Ne montre un diff avant modification que si l'utilisateur le demande, si le
+  changement est large, ou si le risque fonctionnel est important.
+- Propose d’abord un plan court.
+- Attends l’approbation avant d’appliquer les changements.
+- Garde les changements petits et ciblés.
+- Ne touche pas aux fichiers non liés à la demande.
+- Explique les impacts avant de modifier plusieurs fichiers.
 
 ## Architecture
 
-* Respecter les principes SOLID notamment le SRP. 
-* Chaque classe doit avoir une responsabilite unique, ne fais pas de long code dans une classe. Donne lui une responsabilite facile a comprendre
-* faut que le code soit bien decouplee
-* Respecter Clean Architecture.
-* Séparer clairement :
+- Respecter les principes SOLID et Clean Architecture.
+- Séparer clairement :
+  - UI / composants visuels;
+  - pages et orchestration de fonctionnalité;
+  - services API;
+  - domaine et modèles indépendants d’Angular;
+  - état local ou partagé;
+  - routing, guards et interceptors.
+- Organiser le code entre `core`, `features`, `domain` et `shared`.
+- Utiliser des composants standalone pour les nouvelles fonctionnalités.
+- Pour chaque composant Angular, placer le template et les styles dans des
+  fichiers `.html` et `.css` dédiés; ne pas utiliser `template` ou `styles`
+  inline dans le décorateur `@Component`.
+- Charger paresseusement les routes de fonctionnalités.
+- Éviter toute logique métier dans les composants visuels.
+- Les composants visuels ne doivent jamais appeler `HttpClient` directement.
+- Tout appel backend doit passer par un service typé de `app/core/api`.
+- Les pages peuvent orchestrer l’état d’interface, mais les règles métier doivent
+  rester dans le domaine ou dans un service dédié et testable.
+- Utiliser les signals pour l’état local partagé d’une fonctionnalité.
+- Ne pas ajouter de bibliothèque d’état globale sans besoin démontré.
+- Les règles de quota, d’autorisation, d’organisation et de propriété restent
+  dans le backend.
 
-  * API / Controllers / Endpoints
-  * Application / Use Cases / Services applicatifs
-  * Domain / Entities / Value Objects / Interfaces métier
-  * Infrastructure / Repositories / External services
-  * Persistence / EF Core / SQL / Migrations
-  * Configuration / Dependency Injection
-* Éviter la logique métier dans les controllers.
-* Éviter que la couche Domain dépende d’Infrastructure ou d’EF Core.
-* Tout appel réseau ou SDK vers une API externe doit être implémenté dans le projet `AssistantCore.ExternalServices`.
-* La couche Application ne doit jamais dépendre de `AssistantCore.ExternalServices` ni d’un SDK fournisseur.
-* Un appel à une API externe doit suivre la chaîne `Provider applicatif -> interface applicative -> Adapter Infrastructure -> client AssistantCore.ExternalServices -> SDK externe`.
-* Le provider applicatif ne doit jamais appeler directement un adapter, un client `AssistantCore.ExternalServices` ou le SDK externe. Seuls les adapters Infrastructure et la configuration d’injection de dépendances peuvent référencer `AssistantCore.ExternalServices`.
-* Favoriser des services petits, testables et lisibles.
-* Respecter le flow applicatif obligatoire : `Controller -> IDispatcher -> CommandHandler -> Application Service -> Repository ou service externe`.
-* Un controller doit injecter uniquement `IDispatcher` et ne doit jamais appeler directement un service applicatif, un repository ou un `DbContext`.
-* Une commande doit posséder exactement un handler.
-* Un handler doit injecter uniquement des interfaces de services applicatifs et ne doit jamais dépendre directement de la persistence ou d’EF Core.
-* Toute exception à ces règles doit être discutée et approuvée avant de modifier les tests d’architecture.
-* Ne jamais supprimer, désactiver ou assouplir un test d’architecture uniquement pour faire passer le CI.
-* Les règles exécutables se trouvent dans `AssistantCore.Architecture.Tests` et doivent réussir avant tout merge vers `master`.
+## Sécurité
+
+- Aucun secret Microsoft, OpenAI ou fournisseur ne doit être ajouté au frontend.
+- Ne jamais ajouter de client secret, clé API ou jeton dans la configuration
+  statique Angular.
+- Ne pas conserver manuellement les access tokens dans `localStorage`,
+  `sessionStorage`, IndexedDB ou un autre stockage persistant.
+- Ne jamais considérer une donnée envoyée par le frontend comme une preuve
+  d’identité ou d’autorisation.
+- Les guards améliorent la navigation, mais ne remplacent jamais les contrôles
+  d’autorisation du backend.
+- Toute configuration Angular doit être considérée comme publique puisqu’elle
+  est accessible depuis le navigateur.
 
 ## Qualité du code
 
-* C# moderne et lisible.
-* Toujours écrire du code simple à comprendre pour un humain : préférer des fonctions courtes, des responsabilités évidentes et un flux de lecture clair plutôt qu'une abstraction ou une optimisation difficile à suivre.
-* Nullable reference types respectés.
-* Pas de code dupliqué inutile.
-* Noms de classes, méthodes et variables explicites.
-* Ajouter ou ajuster les tests quand c’est pertinent.
-* Toute nouvelle fonctionnalité ou modification de comportement doit inclure les tests pertinents.
-* Dans `AssistantCore.Service.Tests`, utiliser `[Theory, AutoDomainData]` pour tout nouveau test, meme lorsqu'une seule execution est necessaire.
-* Utiliser `[InlineAutoDomainData]` lorsque le scenario exige une ou plusieurs valeurs explicites.
-* Nommer les tests avec la convention Gherkin `Given_<contexte>_When_<methode_testee>_Then_<resultat>`.
-* La partie `When` du nom d'un test doit toujours contenir le nom exact de la méthode testée.
-* Structurer le corps des tests avec les sections `// Given`, `// When` et `// Then`.
-* Ne jamais lancer les tests, qu'ils soient ciblés ou complets.
-* Ne jamais lancer de build lorsque tu finis d'implémenter, même si la modification touche plusieurs fichiers.
-* Pour une correction ponctuelle ou une modification ciblée, ne lancer ni test ni build.
-* Ne jamais présenter les tests comme validés puisqu'ils ne sont pas exécutés par Codex.
-* Gérer les erreurs proprement sans masquer les exceptions importantes.
-* Utiliser async/await correctement pour les appels I/O.
-* Ne pas introduire de dépendances inutiles.
+- Utiliser TypeScript strict et les templates Angular stricts.
+- Favoriser des composants, fonctions et services petits, testables et lisibles.
+- Utiliser `ChangeDetectionStrategy.OnPush` pour les composants applicatifs.
+- Respecter l’accessibilité : HTML sémantique, libellés explicites, navigation au
+  clavier et focus visible.
+- Éviter le code dupliqué et les dépendances inutiles.
+- Donner des noms explicites aux composants, services, fonctions et variables.
+- Gérer les erreurs sans masquer les informations utiles au diagnostic.
+- Utiliser RxJS uniquement lorsqu’un flux asynchrone le justifie; préférer une
+  valeur ou un signal pour un état synchrone simple.
 
-## Documentation et issues
+## Tests et validation
 
-* Ne créer un nouveau document que lorsqu’il est réellement nécessaire pour comprendre une fonctionnalité, un flow, une décision ou une contrainte importante. Pour une modification locale ou évidente, ne pas ajouter de documentation uniquement par principe. Mettre à jour un document existant seulement si son contenu devient incomplet ou incorrect.
-* Rédiger les documents et tickets dans un langage simple, clair et concret.
-* Choisir chaque mot pour que le texte paraisse naturel à une personne qui découvre le sujet. Éviter les tournures artificielles, les traductions littérales et le jargon inutile.
-* Préférer les expressions courantes comme `membre créé automatiquement` à des formulations techniques comme `membre provisionné`. Lorsqu'un terme technique est indispensable, l'expliquer simplement à sa première utilisation.
-* Relire chaque ticket du point de vue d'un humain qui doit comprendre le besoin sans connaître le vocabulaire interne du projet.
-* Éviter les formulations vagues qui obligent le lecteur à deviner le travail attendu.
-* Tous les tickets doivent commencer par expliquer le but réel de la fonctionnalité et la capacité finale qu'elle débloque.
-* Chaque ticket doit contenir les sections `But`, `Pourquoi cette fonctionnalité est nécessaire`, `Flow détaillé`, `Résultat concret`, `Limites`, `Réalisation pas à pas`, `Critères d'acceptation` et `Documentation de référence`.
-* Chaque section possède une responsabilité précise :
-  * `But` explique la capacité finale recherchée;
-  * `Pourquoi cette fonctionnalité est nécessaire` explique ce qui est impossible, bloqué ou risqué sans elle;
-  * `Flow détaillé` explique le comportement complet, étape par étape;
-  * `Résultat concret` résume ce qui fonctionne à la fin;
-  * `Limites` indique clairement ce qui ne fonctionne pas encore;
-  * `Réalisation pas à pas` contient uniquement les actions de développement, sans répéter le flow;
-  * `Critères d'acceptation` contient uniquement des résultats vérifiables, sans recopier les étapes de réalisation.
-* Le `Flow détaillé` ne doit pas être limité à un diagramme ou à une liste de composants. Après le résumé visuel, expliquer chaque étape en texte simple, précis et concret.
-* Pour chaque étape importante du flow, préciser lorsque pertinent :
-  * qui déclenche l'action;
-  * la requête envoyée et la réponse attendue;
-  * les données reçues;
-  * les validations d'identité, d'autorisation et de sécurité;
-  * le chemin `Controller -> Dispatcher -> Handler -> Service`;
-  * la responsabilité exacte de chaque couche;
-  * les lectures et écritures en base;
-  * les appels aux services externes;
-  * les changements d'état;
-  * ce que fait ensuite le frontend, le Worker ou un autre consommateur.
-* Une information doit être expliquée complètement à l'endroit le plus pertinent, puis seulement référencée ailleurs si nécessaire.
-* Ajouter un exemple de requête, réponse, état ou appel frontend seulement lorsqu'il aide réellement à comprendre le comportement.
-* Terminer le flow en décrivant explicitement l'état du système avant et après l'opération.
-* Le lecteur ne doit pas avoir à déduire pourquoi une étape existe ni ce qu'elle rend possible pour l'étape suivante.
-* Ne pas ajouter une section générique ou répétitive uniquement pour reformuler des informations déjà expliquées ailleurs dans le document.
-* Donner assez de détails techniques pour guider le développeur, sans décrire toute l’implémentation ligne par ligne.
-* Préciser les contraintes importantes d’architecture, de sécurité et de comportement.
-* Ne pas imposer les noms de toutes les classes, méthodes ou colonnes lorsque ce choix peut raisonnablement être laissé au développeur.
-* Un ticket doit pouvoir être commencé sans clarification majeure, tout en laissant au développeur les décisions techniques locales.
-* Chaque document de fonctionnalité doit contenir une table des matières cliquable.
-* Ajouter des ancres stables aux sections référencées par des tickets afin que les liens restent valides si un titre change.
-* Chaque ticket doit contenir une section `Documentation de référence` avec un lien vers la section exacte du document concerné.
-* Pour les issues GitHub, utiliser une URL vers le dépôt et la branche par défaut avec l’ancre de section, pas seulement un chemin de fichier.
-* Avant de creer ou mettre a jour un ticket GitHub, ajouter ou mettre a jour la documentation de reference correspondante.
-* Presenter un résumé de la documentation a l'utilisateur et attendre son approbation avant de creer ou modifier le ticket GitHub. Presenter le diff seulement si je le demande explicitement.
-* Ne pas creer un ticket dont les decisions fonctionnelles importantes ne sont pas encore documentees.
+- Ajouter ou ajuster les tests pour toute nouvelle fonctionnalité ou modification
+  de comportement.
+- Utiliser Vitest et Angular TestBed pour les nouveaux tests.
+- Nommer les tests avec la convention Gherkin
+  `Given_<contexte>_When_<methode_testee>_Then_<resultat>`.
+- La partie `When` doit contenir le nom exact de la méthode testée lorsqu’une
+  méthode précise est la cible du test.
+- Structurer le corps des tests avec `// Given`, `// When` et `// Then`.
+- Tester les états de chargement, de succès, vide et d’erreur lorsqu’ils sont
+  pertinents pour l’interface.
+- Ne jamais lancer les tests, qu'ils soient ciblés ou complets, et ne jamais exécuter `npm run verify` puisqu'il contient les tests.
+- ne pas lancer de build solution
+- Pour une correction ponctuelle ou une modification ciblée, ne lancer ni test ni build.
+- Ne jamais présenter les tests comme validés puisqu'ils ne sont pas exécutés par Codex.
+- Ne jamais supprimer, désactiver ou assouplir un test uniquement pour faire
+  passer le CI.
 
+## Documentation et tickets
 
-## Handlers
-- Toute action applicative doit passer par un handler.
-- Le handler doit uniquement orchestrer l’appel aux couches nécessaires.
-- Le handler ne doit pas contenir de logique métier pure.
-- Le handler ne doit pas contenir de calcul métier, règle de décision complexe ou validation métier avancée.
-- La logique métier doit être placée dans :
-  - Domain services
-  - Entities
-  - Value Objects
-  - Policies
-  - Specifications
-  - Application services dédiés si nécessaire
-- Le handler peut seulement :
-  - recevoir la commande/requête
-  - appeler les services/domain/repositories nécessaires
-  - gérer le flux simple
-  - retourner le résultat
-- Les controllers/endpoints doivent appeler le handler, pas directement les services métier.
+- Rédiger les documents et tickets dans un langage simple, clair et concret.
+- Documenter les versions Node.js et Angular supportées, les commandes locales et
+  toute configuration publique nécessaire.
+- Tous les tickets doivent commencer par expliquer la capacité finale recherchée.
+- Les tickets doivent contenir les sections `But`,
+  `Pourquoi cette fonctionnalité est nécessaire`, `Flow détaillé`,
+  `Résultat concret`, `Limites`, `Réalisation pas à pas`,
+  `Critères d’acceptation` et `Documentation de référence`.
+- Pour chaque flow important, expliquer qui déclenche l’action, les données
+  reçues, les validations, les appels API, les changements d’état et ce que
+  l’utilisateur voit ensuite.
+- Ne pas imposer les noms de toutes les classes et méthodes lorsqu’une décision
+  locale peut être laissée au développeur.
+- Avant de créer ou mettre à jour un ticket GitHub, mettre à jour la documentation
+  de référence correspondante.
+- Présenter le diff documentaire et attendre son approbation avant de créer ou
+  modifier le ticket GitHub.
+- Ne pas créer un ticket dont les décisions fonctionnelles importantes ne sont
+  pas encore documentées.
