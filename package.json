@@ -8,7 +8,8 @@
     "start:entra": "npm run start:certification",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "verify": "npm run test && npm run build"
   },
   "private": true,
   "packageManager": "npm@11.12.1",
