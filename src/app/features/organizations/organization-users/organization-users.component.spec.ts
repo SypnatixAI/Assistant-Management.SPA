@@ -106,9 +106,10 @@ describe('OrganizationUsersComponent', () => {
   });
 
   function findButton(label: string): HTMLButtonElement {
-    const button = Array.from(
-      fixture.nativeElement.querySelectorAll<HTMLButtonElement>('button'),
-    ).find((candidate) => candidate.textContent?.trim() === label);
+    const buttons = fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>;
+    const button = Array.from(buttons).find(
+      (candidate) => candidate.textContent?.trim() === label,
+    );
 
     if (!button) {
       throw new Error(`Button '${label}' not found.`);
@@ -131,7 +132,7 @@ function createUserSummary() {
       accessAllowed: true,
       code: 'AccessAllowed',
       message: 'Aucun blocage.',
-      reasons: [],
+      reasons: [] as readonly string[],
     },
   };
 }
