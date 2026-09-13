@@ -1,0 +1,122 @@
+<section class="users-section" aria-labelledby="organization-users-title">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Utilisateurs & accès</p>
+      <h2 id="organization-users-title">Diagnostic des accès</h2>
+      <p>Les décisions d’accès sont calculées par le backend. Aucun rôle n’est modifiable depuis cet écran.</p>
+    </div>
+    <button type="button" class="secondary" (click)="loadUsers()" [disabled]="isLoading()">
+      Actualiser
+    </button>
+  </div>
+
+  <div class="role-legend" aria-label="Rôles applicatifs">
+    <span><strong>PlatformAdmin</strong> : opérateur SynaptixAI du backoffice</span>
+    <span><strong>TenantAdmin</strong> : administrateur de l’organisation cliente</span>
+    <span><strong>User</strong> : utilisateur standard</span>
+  </div>
+
+  <form class="search" (submit)="$event.preventDefault(); loadUsers()">
+    <label for="organization-user-search">Rechercher un utilisateur</label>
+    <div>
+      <input
+        id="organization-user-search"
+        type="search"
+        [value]="search()"
+        (input)="updateSearch($event)"
+        placeholder="Nom ou courriel"
+      />
+      <button type="submit" [disabled]="isLoading()">Rechercher</button>
+    </div>
+  </form>
+
+  @if (error()) {
+    <p class="feedback error" role="alert">{{ error() }}</p>
+  }
+
+  @if (isLoading()) {
+    <p class="feedback" aria-live="polite">Chargement des utilisateurs…</p>
+  } @else if (users().length === 0) {
+    <p class="feedback">Aucun utilisateur trouvé.</p>
+  } @else {
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Utilisateur</th>
+            <th scope="col">Rôle</th>
+            <th scope="col">Accès</th>
+            <th scope="col">Onboarding</th>
+            <th scope="col">Dernière connexion</th>
+            <th scope="col"><span class="sr-only">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of users(); track user.id) {
+            <tr>
+              <td>
+                <strong>{{ user.name }}</strong>
+                <small>{{ user.email }}</small>
+              </td>
+              <td><span class="badge neutral">{{ user.role }}</span></td>
+              <td>
+                <span class="badge" [class.allowed]="user.accessStatus === 'Allowed'" [class.denied]="user.accessStatus === 'Denied'">
+                  {{ user.accessStatus === 'Allowed' ? 'Autorisé' : 'Refusé' }}
+                </span>
+              </td>
+              <td>{{ user.onboardingStatus === 'Complete' ? 'Complet' : 'Incomplet' }}</td>
+              <td>{{ user.lastSuccessfulAuthenticationAt ? (user.lastSuccessfulAuthenticationAt | date: 'yyyy-MM-dd HH:mm') : '-' }}</td>
+              <td><button type="button" class="link-button" (click)="openUser(user.id)">Voir le détail</button></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (isLoadingDetails()) {
+    <p class="feedback" aria-live="polite">Chargement du diagnostic…</p>
+  }
+
+  @if (selectedUser(); as user) {
+    <article class="user-detail" aria-labelledby="selected-user-title">
+      <div class="detail-heading">
+        <div>
+          <p class="eyebrow">Détail utilisateur</p>
+          <h3 id="selected-user-title">{{ user.name }}</h3>
+          <p>{{ user.email }}</p>
+        </div>
+        <button type="button" class="secondary" (click)="closeUser()">Fermer</button>
+      </div>
+
+      <dl class="detail-grid">
+        <div><dt>Rôle</dt><dd>{{ user.role }}</dd></div>
+        <div><dt>Accès</dt><dd>{{ user.accessStatus === 'Allowed' ? 'Autorisé' : 'Refusé' }}</dd></div>
+        <div><dt>Onboarding</dt><dd>{{ user.onboardingStatus === 'Complete' ? 'Complet' : 'Incomplet' }}</dd></div>
+        <div><dt>Fournisseur d’identité</dt><dd>{{ user.identityProvider }}</dd></div>
+      </dl>
+
+      <section class="diagnostic" [class.allowed-panel]="user.diagnostic.accessAllowed" [class.denied-panel]="!user.diagnostic.accessAllowed">
+        <strong>{{ user.diagnostic.message }}</strong>
+        <small>Code : {{ user.diagnostic.code }}</small>
+        @if (user.diagnostic.reasons.length > 0) {
+          <ul>
+            @for (reason of user.diagnostic.reasons; track reason) {
+              <li>{{ reason }}</li>
+            }
+          </ul>
+        }
+      </section>
+
+      <button type="button" (click)="reevaluateAccess()" [disabled]="isReevaluating()">
+        {{ isReevaluating() ? 'Réévaluation…' : 'Réévaluer l’accès' }}
+      </button>
+
+      @if (reevaluation(); as result) {
+        <p class="feedback success" aria-live="polite">
+          Réévaluation terminée — correlationId : <code>{{ result.correlationId }}</code>
+        </p>
+      }
+    </article>
+  }
+</section>
