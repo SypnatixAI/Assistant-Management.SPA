@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, finalize, of } from 'rxjs';
 import { BackofficeUsersApiService } from '../../../core/api/backoffice-users-api.service';
@@ -17,7 +17,7 @@ import {
   styleUrl: './organization-users.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class OrganizationUsersComponent {
+export class OrganizationUsersComponent implements OnInit {
   private readonly api = inject(BackofficeUsersApiService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -31,6 +31,10 @@ export class OrganizationUsersComponent {
   protected readonly isLoadingDetails = signal(false);
   protected readonly isReevaluating = signal(false);
   protected readonly error = signal<string | null>(null);
+
+  ngOnInit(): void {
+    this.loadUsers();
+  }
 
   protected loadUsers(): void {
     this.isLoading.set(true);
@@ -103,10 +107,32 @@ export class OrganizationUsersComponent {
         finalize(() => this.isReevaluating.set(false)),
       )
       .subscribe((result) => {
-        if (result) {
-          this.reevaluation.set(result);
-          this.openUser(user.id);
+        if (!result) {
+          return;
         }
+
+        this.reevaluation.set(result);
+        const accessStatus = result.diagnostic.accessAllowed ? 'Allowed' : 'Denied';
+        this.selectedUser.update((current) =>
+          current
+            ? {
+                ...current,
+                accessStatus,
+                diagnostic: result.diagnostic,
+              }
+            : current,
+        );
+        this.users.update((current) =>
+          current.map((item) =>
+            item.id === user.id
+              ? {
+                  ...item,
+                  accessStatus,
+                  diagnostic: result.diagnostic,
+                }
+              : item,
+          ),
+        );
       });
   }
 }
