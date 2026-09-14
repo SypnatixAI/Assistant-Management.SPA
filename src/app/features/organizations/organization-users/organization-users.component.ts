@@ -3,11 +3,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, OnInit, 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, finalize, of } from 'rxjs';
 import { BackofficeUsersApiService } from '../../../core/api/backoffice-users-api.service';
-import {
-  BackofficeAccessReevaluationResult,
-  BackofficeUserDetails,
-  BackofficeUserSummary,
-} from '../../../domain/models/backoffice-user-access.models';
+import { BackofficeUserDetails, BackofficeUserSummary } from '../../../domain/models/backoffice-user-access.models';
 
 @Component({
   selector: 'app-organization-users',
@@ -25,11 +21,9 @@ export class OrganizationUsersComponent implements OnInit {
 
   protected readonly users = signal<readonly BackofficeUserSummary[]>([]);
   protected readonly selectedUser = signal<BackofficeUserDetails | null>(null);
-  protected readonly reevaluation = signal<BackofficeAccessReevaluationResult | null>(null);
   protected readonly search = signal('');
   protected readonly isLoading = signal(false);
   protected readonly isLoadingDetails = signal(false);
-  protected readonly isReevaluating = signal(false);
   protected readonly error = signal<string | null>(null);
 
   ngOnInit(): void {
@@ -64,7 +58,6 @@ export class OrganizationUsersComponent implements OnInit {
   protected openUser(userId: string): void {
     this.isLoadingDetails.set(true);
     this.error.set(null);
-    this.reevaluation.set(null);
     this.api
       .getUserDetails(this.organizationId(), userId)
       .pipe(
@@ -85,54 +78,6 @@ export class OrganizationUsersComponent implements OnInit {
 
   protected closeUser(): void {
     this.selectedUser.set(null);
-    this.reevaluation.set(null);
   }
 
-  protected reevaluateAccess(): void {
-    const user = this.selectedUser();
-    if (!user) {
-      return;
-    }
-
-    this.isReevaluating.set(true);
-    this.error.set(null);
-    this.api
-      .reevaluateAccess(this.organizationId(), user.id)
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        catchError(() => {
-          this.error.set('La réévaluation de l’accès a échoué.');
-          return of(null);
-        }),
-        finalize(() => this.isReevaluating.set(false)),
-      )
-      .subscribe((result) => {
-        if (!result) {
-          return;
-        }
-
-        this.reevaluation.set(result);
-        const accessStatus = result.diagnostic.accessAllowed ? 'Allowed' : 'Denied';
-        this.selectedUser.update((current) =>
-          current
-            ? {
-                ...current,
-                accessStatus,
-                diagnostic: result.diagnostic,
-              }
-            : current,
-        );
-        this.users.update((current) =>
-          current.map((item) =>
-            item.id === user.id
-              ? {
-                  ...item,
-                  accessStatus,
-                  diagnostic: result.diagnostic,
-                }
-              : item,
-          ),
-        );
-      });
-  }
 }
