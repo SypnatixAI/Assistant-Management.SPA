@@ -34,17 +34,11 @@ export const routes: Routes = [
   },
   {
     path: 'backoffice/indexations',
-    canActivate: [managementAuthGuard],
-    loadComponent: () =>
-      import('./features/indexations/indexation-management.page').then(
-        (page) => page.IndexationManagementPage,
-      ),
+    redirectTo: 'backoffice/organizations',
   },
   {
     path: 'backoffice/access',
-    canActivate: [managementAuthGuard],
-    loadComponent: () =>
-      import('./features/access/access-recovery.page').then((page) => page.AccessRecoveryPage),
+    redirectTo: 'backoffice/organizations',
   },
   {
     path: 'backoffice/system',
@@ -66,11 +60,11 @@ export const routes: Routes = [
   },
   {
     path: 'indexations',
-    redirectTo: 'backoffice/indexations',
+    redirectTo: 'backoffice/organizations',
   },
   {
     path: 'access',
-    redirectTo: 'backoffice/access',
+    redirectTo: 'backoffice/organizations',
   },
   {
     path: 'system',
