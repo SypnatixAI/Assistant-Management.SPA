@@ -1,11 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Observable, Subject, of, throwError } from 'rxjs';
 import { BackofficeUsersApiService } from '../../../core/api/backoffice-users-api.service';
-import {
-  BackofficeAccessReevaluationResult,
-  BackofficeUserDetails,
-  BackofficeUserListResponse,
-} from '../../../domain/models/backoffice-user-access.models';
+import { BackofficeUserDetails, BackofficeUserListResponse } from '../../../domain/models/backoffice-user-access.models';
 import { OrganizationUsersComponent } from './organization-users.component';
 
 describe('OrganizationUsersComponent', () => {
@@ -73,50 +69,24 @@ describe('OrganizationUsersComponent', () => {
     );
   });
 
-  it('Given_SelectedUser_When_reevaluateAccess_Then_DisplaysCorrelationIdAndUpdatedDiagnostic', () => {
+  it('Given_SelectedUser_When_UserDetailsAreLoaded_Then_DoesNotDisplayAccessReevaluationAction', () => {
     // Given
     const user = createUserDetails();
     api.usersResponse = of({ items: [user] });
     api.userDetailsResponse = of(user);
-    api.reevaluationResponse = of({
-      userId: user.id,
-      diagnostic: {
-        accessAllowed: false,
-        code: 'OnboardingIncomplete',
-        message: 'Accès refusé.',
-        reasons: ['Consentement administrateur manquant.'],
-      },
-      correlationId: 'correlation-123',
-      evaluatedAt: '2026-09-13T04:00:00Z',
-    });
     fixture.detectChanges();
-    const detailsButton = findButton('Voir le détail');
+    const detailsButton = Array.from(
+      fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>,
+    ).find((button) => button.textContent?.trim() === 'Voir le détail');
+    if (!detailsButton) {
+      throw new Error("Button 'Voir le détail' not found.");
+    }
     detailsButton.click();
     fixture.detectChanges();
 
-    // When
-    const reevaluateButton = findButton('Réévaluer l’accès');
-    reevaluateButton.click();
-    fixture.detectChanges();
-
     // Then
-    expect(fixture.nativeElement.textContent).toContain('correlation-123');
-    expect(fixture.nativeElement.textContent).toContain('OnboardingIncomplete');
-    expect(fixture.nativeElement.textContent).toContain('Refusé');
+    expect(fixture.nativeElement.textContent).not.toContain('Réévaluer l’accès');
   });
-
-  function findButton(label: string): HTMLButtonElement {
-    const buttons = fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>;
-    const button = Array.from(buttons).find(
-      (candidate) => candidate.textContent?.trim() === label,
-    );
-
-    if (!button) {
-      throw new Error(`Button '${label}' not found.`);
-    }
-
-    return button;
-  }
 });
 
 function createUserSummary() {
@@ -149,12 +119,6 @@ function createUserDetails(): BackofficeUserDetails {
 class StubBackofficeUsersApiService {
   usersResponse: Observable<BackofficeUserListResponse> = of({ items: [] });
   userDetailsResponse: Observable<BackofficeUserDetails> = of(createUserDetails());
-  reevaluationResponse: Observable<BackofficeAccessReevaluationResult> = of({
-    userId: 'user-1',
-    diagnostic: createUserSummary().diagnostic,
-    correlationId: 'correlation-default',
-    evaluatedAt: '2026-09-13T04:00:00Z',
-  });
 
   getUsers(): Observable<BackofficeUserListResponse> {
     return this.usersResponse;
@@ -162,9 +126,5 @@ class StubBackofficeUsersApiService {
 
   getUserDetails(): Observable<BackofficeUserDetails> {
     return this.userDetailsResponse;
-  }
-
-  reevaluateAccess(): Observable<BackofficeAccessReevaluationResult> {
-    return this.reevaluationResponse;
   }
 }
